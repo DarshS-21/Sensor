@@ -5,17 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Posture Monitor</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@700;800&display=swap');
 
   :root {
     --good: #22c55e;
     --warn: #f59e0b;
     --bad: #ef4444;
-    --bg: #0a0a0a;
-    --surface: #111111;
-    --border: #222222;
-    --text: #e5e5e5;
-    --muted: #555;
+    --bg: #080808;
+    --surface: #0f0f0f;
+    --surface2: #141414;
+    --border: #1e1e1e;
+    --border2: #2a2a2a;
+    --text: #e2e2e2;
+    --muted: #4a4a4a;
+    --muted2: #666;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -23,303 +26,664 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Mono', monospace;
+    font-family: 'IBM Plex Mono', monospace;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    padding: 20px;
+    gap: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 24px;
-    gap: 20px;
+    justify-content: space-between;
+    padding: 0 0 16px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
 
   h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 4px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 5px;
     text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* Connect button */
-  #connectBtn {
-    background: none;
-    border: 1px solid #333;
     color: var(--text);
-    font-family: 'DM Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    padding: 10px 28px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border-radius: 2px;
   }
 
-  #connectBtn:hover { border-color: #666; color: #fff; }
-  #connectBtn:disabled { opacity: 0.3; cursor: default; }
-
-  /* Status dot */
   .status-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.72rem;
-    color: var(--muted);
+    gap: 6px;
+    font-size: 0.65rem;
+    color: var(--muted2);
     letter-spacing: 1px;
   }
 
   .dot {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--muted);
-    transition: background 0.3s;
+    flex-shrink: 0;
   }
-  .dot.connected { background: var(--good); box-shadow: 0 0 6px var(--good); }
+  .dot.connected { background: var(--good); box-shadow: 0 0 8px var(--good); }
 
-  /* Main angle display */
+  #connectBtn {
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--muted2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 2px;
+  }
+  #connectBtn:hover { border-color: var(--good); color: var(--good); }
+  #connectBtn:disabled { opacity: 0.25; cursor: default; border-color: var(--border); color: var(--muted); }
+
+  /* ── MAIN LAYOUT: two columns ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    flex: 1;
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
   .angle-card {
-    width: 320px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 36px 24px;
-    text-align: center;
-    transition: border-color 0.4s;
+    border-radius: 3px;
+    padding: 28px 24px 22px;
     position: relative;
     overflow: hidden;
-    max-width: 90vw;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
-  .angle-card::before {
+  .angle-card::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    background: var(--accent-color, var(--good));
+    background: var(--accent, var(--good));
     transition: background 0.4s;
   }
 
-  .angle-label {
-    font-size: 0.65rem;
+  .card-label {
+    font-size: 0.6rem;
     letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 12px;
+    color: var(--muted2);
+    margin-bottom: 10px;
   }
 
   .angle-value {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.8rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 4.5rem;
     font-weight: 800;
     line-height: 1;
-    color: var(--accent-color, var(--good));
-    transition: color 0.4s;
-    letter-spacing: 0px;
-    overflow: hidden;
-    word-break: break-all;
+    color: var(--accent, var(--good));
+    transition: color 0.35s;
+    letter-spacing: -2px;
   }
 
   .angle-unit {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     color: var(--muted);
     margin-top: 8px;
-    letter-spacing: 2px;
-  }
-
-  /* Status cards row */
-  .cards-row {
-    display: flex;
-    gap: 10px;
-    width: min(320px, 90vw);
-  }
-
-  .info-card {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px 12px;
-    text-align: center;
-    transition: border-color 0.3s;
-  }
-
-  .info-card .card-label {
-    font-size: 0.6rem;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 8px;
   }
 
-  .info-card .card-value {
-    font-size: 0.78rem;
-    font-weight: 500;
-    letter-spacing: 1px;
-    transition: color 0.3s;
+  /* threshold bar */
+  .bar-wrap {
+    margin-top: 18px;
   }
 
-  .posture-ok .card-value { color: var(--good); }
-  .posture-warn .card-value { color: var(--bad); }
-
-  .motor-off .card-value { color: var(--muted); }
-  .motor-on .card-value { color: var(--bad); }
-  .motor-on { border-color: var(--bad) !important; animation: pulse 0.8s infinite; }
-
-  @keyframes pulse {
-    0%, 100% { border-color: var(--bad); }
-    50% { border-color: #7f1d1d; }
-  }
-
-  /* Threshold line indicator */
-  .threshold-bar {
-    width: min(320px, 90vw);
-    height: 4px;
-    background: #1a1a1a;
+  .bar-track {
+    height: 3px;
+    background: var(--border2);
     border-radius: 2px;
     overflow: hidden;
+    position: relative;
   }
 
-  .threshold-fill {
+  .bar-fill {
     height: 100%;
     width: 0%;
     background: var(--good);
-    transition: width 0.15s, background 0.4s;
+    transition: width 0.12s, background 0.35s;
     border-radius: 2px;
   }
 
-  .bar-labels {
-    width: min(320px, 90vw);
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.6rem;
-    color: var(--muted);
-    letter-spacing: 1px;
-    margin-top: 4px;
+  .bar-tick {
+    position: absolute;
+    top: -2px;
+    left: 33.33%; /* 30/90 */
+    width: 1px;
+    height: 7px;
+    background: var(--muted);
   }
 
-  /* Log */
-  .log {
-    width: min(320px, 90vw);
-    font-size: 0.65rem;
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.58rem;
     color: var(--muted);
     letter-spacing: 1px;
-    text-align: center;
-    height: 16px;
+    margin-top: 5px;
+  }
+
+  /* status mini cards */
+  .mini-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 14px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mini-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--mc-color, var(--muted));
+    transition: background 0.35s;
+  }
+
+  .mini-label {
+    font-size: 0.58rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .mini-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--mc-color, var(--muted2));
+    transition: color 0.35s;
+  }
+
+  .motor-on { animation: pulse-border 0.7s infinite; }
+  @keyframes pulse-border {
+    0%, 100% { --mc-color: var(--bad); }
+    50% { --mc-color: #7f1d1d; }
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* stats grid */
+  .stats-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 16px;
+  }
+
+  .section-label {
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted2);
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .stat-item {
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .stat-label {
+    font-size: 0.56rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .stat-value.good { color: var(--good); }
+  .stat-value.bad { color: var(--bad); }
+  .stat-value.warn { color: var(--warn); }
+
+  /* log */
+  .log-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .log-entries {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 0;
+    max-height: 220px;
+  }
+
+  .log-entries::-webkit-scrollbar { width: 3px; }
+  .log-entries::-webkit-scrollbar-track { background: transparent; }
+  .log-entries::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .log-entry {
+    display: grid;
+    grid-template-columns: 70px 50px 1fr;
+    gap: 8px;
+    font-size: 0.63rem;
+    line-height: 1.4;
+    padding: 3px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+
+  .log-ts {
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    font-size: 0.6rem;
+  }
+
+  .log-deg {
+    color: var(--muted2);
+    text-align: right;
+    font-size: 0.6rem;
+  }
+
+  .log-msg {
+    letter-spacing: 0.5px;
+  }
+
+  .log-msg.ev-good { color: var(--good); }
+  .log-msg.ev-poor { color: var(--bad); }
+  .log-msg.ev-haptic { color: var(--warn); }
+  .log-msg.ev-info { color: var(--muted2); }
+
+  .log-empty {
+    font-size: 0.63rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    padding: 8px 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+    .angle-value { font-size: 3.5rem; }
   }
 </style>
 </head>
 <body>
 
-<h1>Posture Monitor</h1>
-
-<div class="status-row">
-  <div class="dot" id="dot"></div>
-  <span id="statusText">not connected</span>
-</div>
-
-<button id="connectBtn">Connect via Bluetooth</button>
-
-<div class="angle-card" id="angleCard" style="--accent-color: var(--good)">
-  <div class="angle-label">Forward Flexion</div>
-  <div class="angle-value" id="angleValue">--</div>
-  <div class="angle-unit">degrees</div>
-</div>
-
-<div class="threshold-bar">
-  <div class="threshold-fill" id="thresholdFill"></div>
-</div>
-<div class="bar-labels">
-  <span>0°</span>
-  <span>threshold: 30°</span>
-  <span>90°</span>
-</div>
-
-<div class="cards-row">
-  <div class="info-card posture-ok" id="postureCard">
-    <div class="card-label">Posture</div>
-    <div class="card-value" id="postureValue">GOOD</div>
+<header>
+  <div class="header-left">
+    <h1>Posture Monitor</h1>
+    <div class="status-row">
+      <div class="dot" id="dot"></div>
+      <span id="statusText">not connected</span>
+    </div>
   </div>
-  <div class="info-card motor-off" id="motorCard">
-    <div class="card-label">Haptic</div>
-    <div class="card-value" id="motorValue">OFF</div>
+  <button id="connectBtn">Connect</button>
+</header>
+
+<div class="main-grid">
+
+  <!-- LEFT: angle + bar + mini cards -->
+  <div class="left-panel">
+
+    <div class="angle-card" id="angleCard">
+      <div class="card-label">Forward Flexion</div>
+      <div class="angle-value" id="angleValue">--.-</div>
+      <div class="angle-unit">degrees</div>
+      <div class="bar-wrap">
+        <div class="bar-track">
+          <div class="bar-fill" id="barFill"></div>
+          <div class="bar-tick"></div>
+        </div>
+        <div class="bar-labels">
+          <span>0°</span>
+          <span>▲ 30° threshold</span>
+          <span>90°</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mini-cards">
+      <div class="mini-card" id="postureCard" style="--mc-color: var(--good)">
+        <div class="mini-label">Posture</div>
+        <div class="mini-value" id="postureValue">GOOD</div>
+      </div>
+      <div class="mini-card" id="motorCard" style="--mc-color: var(--muted)">
+        <div class="mini-label">Haptic</div>
+        <div class="mini-value" id="motorValue">OFF</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: stats + log -->
+  <div class="right-panel">
+
+    <div class="stats-card">
+      <div class="section-label">Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Min Angle</div>
+          <div class="stat-value" id="statMin">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Max Angle</div>
+          <div class="stat-value" id="statMax">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Avg Angle</div>
+          <div class="stat-value" id="statAvg">--</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Samples</div>
+          <div class="stat-value" id="statSamples">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Good Time</div>
+          <div class="stat-value good" id="statGoodTime">0s</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Poor Time</div>
+          <div class="stat-value bad" id="statPoorTime">0s</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Haptic Alerts</div>
+          <div class="stat-value warn" id="statAlerts">0</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">% Good</div>
+          <div class="stat-value" id="statPct">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <div class="section-label">Event Log</div>
+      <div class="log-entries" id="logEntries">
+        <div class="log-empty">— awaiting connection —</div>
+      </div>
+    </div>
+
   </div>
 </div>
-
-<div class="log" id="log"></div>
 
 <script>
   const THRESHOLD = 30;
   const MOTOR_DELAY = 3000;
 
+  // State
   let angle = 0;
   let badPostureStart = null;
   let motorOn = false;
+  let lastPostureState = 'good'; // 'good' | 'poor'
+  let sessionStart = null;
 
+  // Stats
+  let samples = [];
+  let goodMs = 0;
+  let poorMs = 0;
+  let lastTick = null;
+  let alertCount = 0;
+  let statsTimer = null;
+
+  // DOM
   const dot = document.getElementById('dot');
   const statusText = document.getElementById('statusText');
   const connectBtn = document.getElementById('connectBtn');
   const angleCard = document.getElementById('angleCard');
   const angleValue = document.getElementById('angleValue');
-  const thresholdFill = document.getElementById('thresholdFill');
+  const barFill = document.getElementById('barFill');
   const postureCard = document.getElementById('postureCard');
   const postureValue = document.getElementById('postureValue');
   const motorCard = document.getElementById('motorCard');
   const motorValue = document.getElementById('motorValue');
-  const log = document.getElementById('log');
+  const logEntries = document.getElementById('logEntries');
 
+  const statMin = document.getElementById('statMin');
+  const statMax = document.getElementById('statMax');
+  const statAvg = document.getElementById('statAvg');
+  const statSamples = document.getElementById('statSamples');
+  const statGoodTime = document.getElementById('statGoodTime');
+  const statPoorTime = document.getElementById('statPoorTime');
+  const statAlerts = document.getElementById('statAlerts');
+  const statPct = document.getElementById('statPct');
+
+  // ── LOG ──────────────────────────────────────────────────────────
+  function ts() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function addLog(msg, cls, deg) {
+    // Remove empty placeholder
+    const empty = logEntries.querySelector('.log-empty');
+    if (empty) empty.remove();
+
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+
+    const tsEl = document.createElement('span');
+    tsEl.className = 'log-ts';
+    tsEl.textContent = ts();
+
+    const degEl = document.createElement('span');
+    degEl.className = 'log-deg';
+    degEl.textContent = deg !== undefined ? deg.toFixed(1) + '°' : '';
+
+    const msgEl = document.createElement('span');
+    msgEl.className = 'log-msg ' + cls;
+    msgEl.textContent = msg;
+
+    entry.appendChild(tsEl);
+    entry.appendChild(degEl);
+    entry.appendChild(msgEl);
+    logEntries.appendChild(entry);
+
+    // Keep max 120 entries
+    while (logEntries.children.length > 120) {
+      logEntries.removeChild(logEntries.firstChild);
+    }
+
+    logEntries.scrollTop = logEntries.scrollHeight;
+  }
+
+  // ── STATS ─────────────────────────────────────────────────────────
+  function formatTime(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return s + 's';
+    const m = Math.floor(s / 60);
+    const rs = s % 60;
+    return m + 'm ' + rs + 's';
+  }
+
+  function tickTime() {
+    if (!lastTick) return;
+    const now = Date.now();
+    const delta = now - lastTick;
+    lastTick = now;
+    if (lastPostureState === 'good') goodMs += delta;
+    else poorMs += delta;
+  }
+
+  function updateStats(rawAngle) {
+    samples.push(rawAngle);
+    const n = samples.length;
+    const mn = Math.min(...samples);
+    const mx = Math.max(...samples);
+    const avg = samples.reduce((a,b) => a+b, 0) / n;
+    const total = goodMs + poorMs;
+    const pct = total > 0 ? Math.round((goodMs / total) * 100) : null;
+
+    statMin.textContent = mn.toFixed(1) + '°';
+    statMax.textContent = mx.toFixed(1) + '°';
+    statAvg.textContent = avg.toFixed(1) + '°';
+    statSamples.textContent = n;
+    statGoodTime.textContent = formatTime(goodMs);
+    statPoorTime.textContent = formatTime(poorMs);
+    statAlerts.textContent = alertCount;
+    statPct.textContent = pct !== null ? pct + '%' : '--';
+
+    // colour % based on value
+    if (pct !== null) {
+      statPct.className = 'stat-value ' + (pct >= 70 ? 'good' : pct >= 40 ? 'warn' : 'bad');
+    }
+
+    statMin.className = 'stat-value ' + (mn > THRESHOLD ? 'bad' : '');
+    statMax.className = 'stat-value ' + (mx > THRESHOLD ? 'bad' : '');
+    statAvg.className = 'stat-value ' + (avg > THRESHOLD ? 'bad' : avg > THRESHOLD * 0.8 ? 'warn' : 'good');
+  }
+
+  // ── DISPLAY ───────────────────────────────────────────────────────
   function updateDisplay(rawAngle) {
     angle = rawAngle;
+    tickTime();
+
     const clamped = Math.max(0, Math.min(90, angle));
     const pct = (clamped / 90) * 100;
 
     angleValue.textContent = angle.toFixed(1);
-    thresholdFill.style.width = pct + '%';
+    barFill.style.width = pct + '%';
 
     const now = Date.now();
+    const isGood = angle <= THRESHOLD;
 
-    if (angle > THRESHOLD) {
-      // bad posture
-      angleCard.style.setProperty('--accent-color', 'var(--bad)');
-      thresholdFill.style.background = 'var(--bad)';
-      postureCard.className = 'info-card posture-warn';
+    if (!isGood) {
+      // poor posture
+      angleCard.style.setProperty('--accent', 'var(--bad)');
+      barFill.style.background = 'var(--bad)';
+      postureCard.style.setProperty('--mc-color', 'var(--bad)');
       postureValue.textContent = 'POOR';
 
-      if (!badPostureStart) badPostureStart = now;
-      if (now - badPostureStart >= MOTOR_DELAY) {
-        motorOn = true;
-        motorCard.className = 'info-card motor-on';
-        motorValue.textContent = 'ON';
+      if (lastPostureState === 'good') {
+        addLog('posture degraded', 'ev-poor', angle);
+        lastPostureState = 'poor';
       }
+
+      if (!badPostureStart) badPostureStart = now;
+
+      if (!motorOn && (now - badPostureStart >= MOTOR_DELAY)) {
+        motorOn = true;
+        alertCount++;
+        motorCard.style.setProperty('--mc-color', 'var(--bad)');
+        motorCard.classList.add('motor-on');
+        motorValue.textContent = 'ON';
+        addLog('haptic alert fired', 'ev-haptic', angle);
+      }
+
     } else {
       // good posture
-      angleCard.style.setProperty('--accent-color', 'var(--good)');
-      thresholdFill.style.background = angle > 20 ? 'var(--warn)' : 'var(--good)';
-      postureCard.className = 'info-card posture-ok';
+      const colour = angle > 20 ? 'var(--warn)' : 'var(--good)';
+      angleCard.style.setProperty('--accent', colour);
+      barFill.style.background = colour;
+      postureCard.style.setProperty('--mc-color', 'var(--good)');
       postureValue.textContent = 'GOOD';
+
+      if (lastPostureState === 'poor') {
+        addLog('posture corrected', 'ev-good', angle);
+        lastPostureState = 'good';
+      }
+
       badPostureStart = null;
-      motorOn = false;
-      motorCard.className = 'info-card motor-off';
-      motorValue.textContent = 'OFF';
+      if (motorOn) {
+        motorOn = false;
+        motorCard.classList.remove('motor-on');
+        motorCard.style.setProperty('--mc-color', 'var(--muted)');
+        motorValue.textContent = 'OFF';
+        addLog('haptic stopped', 'ev-info', angle);
+      }
     }
+
+    updateStats(angle);
   }
 
+  // ── BLE ───────────────────────────────────────────────────────────
   let buffer = '';
 
   function handleData(event) {
     const value = event.target.value;
     const decoder = new TextDecoder();
     buffer += decoder.decode(value);
-
     const lines = buffer.split('\n');
-    buffer = lines.pop(); // keep incomplete line
-
+    buffer = lines.pop();
     for (const line of lines) {
       const trimmed = line.trim();
       const num = parseFloat(trimmed);
       if (!isNaN(num) && Math.abs(num) < 200) {
+        if (!lastTick) {
+          lastTick = Date.now();
+          sessionStart = Date.now();
+        }
         updateDisplay(num);
       }
     }
@@ -327,13 +691,13 @@
 
   connectBtn.addEventListener('click', async () => {
     try {
-      log.textContent = 'scanning...';
+      addLog('scanning for device…', 'ev-info');
       const device = await navigator.bluetooth.requestDevice({
         acceptAllDevices: true,
         optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
       });
 
-      log.textContent = 'connecting...';
+      addLog('connecting…', 'ev-info');
       const server = await device.gatt.connect();
       const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
       const characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
@@ -342,19 +706,23 @@
       characteristic.addEventListener('characteristicvaluechanged', handleData);
 
       dot.className = 'dot connected';
-      statusText.textContent = 'connected · ' + device.name;
+      statusText.textContent = (device.name || 'device') + ' · live';
       connectBtn.disabled = true;
-      log.textContent = 'receiving data...';
+      addLog('connected to ' + (device.name || 'unknown'), 'ev-good');
+
+      // Tick time every second for accurate durations
+      statsTimer = setInterval(() => { tickTime(); updateStats(angle); }, 1000);
 
       device.addEventListener('gattserverdisconnected', () => {
         dot.className = 'dot';
         statusText.textContent = 'disconnected';
         connectBtn.disabled = false;
-        log.textContent = 'connection lost';
+        addLog('connection lost', 'ev-poor');
+        if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
       });
 
     } catch (err) {
-      log.textContent = 'error: ' + err.message;
+      addLog('error: ' + err.message, 'ev-poor');
     }
   });
 </script>
