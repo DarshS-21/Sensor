@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Posture Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --green:   #22c55e;
+    --green-bg:#052e16;
+    --yellow:  #eab308;
+    --red:     #ef4444;
+    --red-bg:  #450a0a;
+    --bg:      #0d0d0d;
+    --surface: #181818;
+    --surface2:#1f1f1f;
+    --border:  #2a2a2a;
+    --border2: #333;
+    --text:    #e8e8e8;
+    --sub:     #888;
+    --muted:   #555;
+    --r: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 18px;
+    font-size: 14px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hdr-left h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+  .hdr-left p {
+    font-size: 12px;
+    color: var(--sub);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+
+  .hdr-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .conn-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--sub);
+    font-weight: 500;
+    background: var(--surface);
+  }
+  .conn-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .conn-dot.live {
+    background: var(--green);
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
+  }
+
+  #connectBtn {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+  }
+  #connectBtn:hover { background: #2a2a2a; }
+  #connectBtn:disabled { opacity: 0.3; cursor: default; }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .col { display: flex; flex-direction: column; gap: 14px; }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--sub);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .panel-hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  .panel-body { padding: 16px 14px; }
+
+  /* ── ANGLE ── */
+  .angle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 14px 20px;
+    gap: 0;
+  }
+
+  .angle-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 72px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--green);
+    transition: color 0.3s;
+    letter-spacing: -2px;
+  }
+
+  .angle-lbl {
+    font-size: 11px;
+    color: var(--sub);
+    font-weight: 500;
+    margin-top: 6px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  /* bar */
+  .bar-wrap { width: 100%; margin-top: 22px; }
+
+  .bar-track {
+    height: 5px;
+    background: var(--surface2);
+    border-radius: 3px;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.1s, background 0.3s;
+  }
+  .bar-tick {
+    position: absolute;
+    top: -3px; left: 33.33%;
+    width: 1px; height: 11px;
+    background: var(--border2);
+  }
+  .bar-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ── STATUS TILES ── */
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .tile {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 12px 14px;
+  }
+  .tile-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .tile-val {
+    font-size: 15px;
+    font-weight: 700;
+    transition: color 0.3s;
+  }
+  .c-green  { color: var(--green); }
+  .c-red    { color: var(--red); }
+  .c-muted  { color: var(--muted); }
+  .c-yellow { color: var(--yellow); }
+
+  .tile-alert {
+    border-color: #7f1d1d !important;
+    animation: alert-pulse 0.85s ease-in-out infinite;
+  }
+  @keyframes alert-pulse {
+    0%,100% { background: var(--surface2); }
+    50%      { background: rgba(69,10,10,0.6); }
+  }
+
+  /* ── STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 10px 12px;
+  }
+  .stat-lbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+  .stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .stat-val.g { color: var(--green); }
+  .stat-val.y { color: var(--yellow); }
+  .stat-val.r { color: var(--red); }
+
+  /* ── LOG ── */
+  .log-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .log-panel .panel-body { flex: 1; padding: 0; display: flex; flex-direction: column; }
+
+  .log-scroll {
+    overflow-y: auto;
+    max-height: 210px;
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .log-scroll::-webkit-scrollbar { width: 3px; }
+  .log-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .log-row {
+    display: grid;
+    grid-template-columns: 52px 40px 1fr;
+    gap: 8px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .log-row:last-child { border-bottom: none; }
+
+  .lt { color: var(--muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .la { color: var(--sub); font-family: 'JetBrains Mono', monospace; font-size: 11px; text-align: right; }
+  .lm { font-weight: 500; }
+  .lm.good   { color: var(--green); }
+  .lm.poor   { color: var(--red); }
+  .lm.haptic { color: var(--yellow); }
+  .lm.info   { color: var(--sub); }
+
+  .log-empty { padding: 14px 0; text-align: center; color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 620px) {
+    .grid { grid-template-columns: 1fr; }
+    .angle-num { font-size: 56px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-left">
+    <h1>Posture Monitor</h1>
+    <p>Arduino · HM-10 BLE</p>
+  </div>
+  <div class="hdr-right">
+    <div class="conn-badge">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connText">Not connected</span>
+    </div>
+    <button id="connectBtn">Connect via Bluetooth</button>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- LEFT -->
+  <div class="col">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Forward Flexion</span>
+        <span class="panel-hint">Threshold: 30°</span>
+      </div>
+      <div class="angle-wrap">
+        <div class="angle-num" id="angleVal">--</div>
+        <div class="angle-lbl">Degrees</div>
+        <div class="bar-wrap">
+          <div class="bar-track">
+            <div class="bar-fill" id="barFill"></div>
+            <div class="bar-tick"></div>
+          </div>
+          <div class="bar-foot"><span>0°</span><span>30°</span><span>90°</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile" id="postureTile">
+        <div class="tile-lbl">Posture</div>
+        <div class="tile-val c-green" id="postureVal">Good</div>
+      </div>
+      <div class="tile" id="hapticTile">
+        <div class="tile-lbl">Haptic</div>
+        <div class="tile-val c-muted" id="hapticVal">Off</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Session Statistics</span>
+      </div>
+      <div class="panel-body">
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-lbl">Min Angle</div><div class="stat-val" id="sMin">—</div></div>
+          <div class="stat"><div class="stat-lbl">Max Angle</div><div class="stat-val" id="sMax">—</div></div>
+          <div class="stat"><div class="stat-lbl">Average</div><div class="stat-val" id="sAvg">—</div></div>
+          <div class="stat"><div class="stat-lbl">Samples</div><div class="stat-val" id="sSamples">0</div></div>
+          <div class="stat"><div class="stat-lbl">Good Time</div><div class="stat-val g" id="sGood">0s</div></div>
+          <div class="stat"><div class="stat-lbl">Poor Time</div><div class="stat-val r" id="sPoor">0s</div></div>
+          <div class="stat"><div class="stat-lbl">Alerts</div><div class="stat-val y" id="sAlerts">0</div></div>
+          <div class="stat"><div class="stat-lbl">% Good</div><div class="stat-val" id="sPct">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel log-panel">
+      <div class="panel-head">
+        <span class="panel-title">Event Log</span>
+      </div>
+      <div class="panel-body">
+        <div class="log-scroll" id="logScroll">
+          <div class="log-empty">Waiting for connection…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const THRESHOLD = 30, MOTOR_DELAY = 3000;
+  let angle = 0, badPostureStart = null, motorOn = false;
+  let lastState = 'good', lastTick = null;
+  let goodMs = 0, poorMs = 0, alertCount = 0;
+  let samples = [], timer = null, buf = '';
+
+  const connDot    = document.getElementById('connDot');
+  const connText   = document.getElementById('connText');
+  const connectBtn = document.getElementById('connectBtn');
+  const angleVal   = document.getElementById('angleVal');
+  const barFill    = document.getElementById('barFill');
+  const postureTile= document.getElementById('postureTile');
+  const postureVal = document.getElementById('postureVal');
+  const hapticTile = document.getElementById('hapticTile');
+  const hapticVal  = document.getElementById('hapticVal');
+  const logScroll  = document.getElementById('logScroll');
+  const sMin       = document.getElementById('sMin');
+  const sMax       = document.getElementById('sMax');
+  const sAvg       = document.getElementById('sAvg');
+  const sSamples   = document.getElementById('sSamples');
+  const sGood      = document.getElementById('sGood');
+  const sPoor      = document.getElementById('sPoor');
+  const sAlerts    = document.getElementById('sAlerts');
+  const sPct       = document.getElementById('sPct');
+
+  function ts() {
+    return [new Date().getHours(), new Date().getMinutes(), new Date().getSeconds()]
+      .map(n => String(n).padStart(2,'0')).join(':');
+  }
+
+  function fmt(ms) {
+    const s = Math.floor(ms/1000);
+    return s < 60 ? s+'s' : Math.floor(s/60)+'m '+(s%60)+'s';
+  }
+
+  function log(msg, cls, deg) {
+    const empty = logScroll.querySelector('.log-empty');
+    if (empty) empty.remove();
+    const row = document.createElement('div'); row.className = 'log-row';
+    const t = document.createElement('span'); t.className = 'lt'; t.textContent = ts();
+    const a = document.createElement('span'); a.className = 'la'; a.textContent = deg !== undefined ? deg.toFixed(1)+'°' : '';
+    const m = document.createElement('span'); m.className = 'lm '+cls; m.textContent = msg;
+    row.append(t, a, m);
+    logScroll.appendChild(row);
+    while (logScroll.children.length > 150) logScroll.removeChild(logScroll.firstChild);
+    logScroll.scrollTop = logScroll.scrollHeight;
+  }
+
+  function tick() {
+    if (!lastTick) return;
+    const now = Date.now(), d = now - lastTick; lastTick = now;
+    if (lastState === 'good') goodMs += d; else poorMs += d;
+  }
+
+  function stats() {
+    if (!samples.length) return;
+    const mn = Math.min(...samples), mx = Math.max(...samples);
+    const avg = samples.reduce((a,b)=>a+b,0)/samples.length;
+    const total = goodMs+poorMs, pct = total>0 ? Math.round(goodMs/total*100) : null;
+    sMin.textContent = mn.toFixed(1)+'°';
+    sMax.textContent = mx.toFixed(1)+'°';
+    sAvg.textContent = avg.toFixed(1)+'°';
+    sSamples.textContent = samples.length;
+    sGood.textContent = fmt(goodMs);
+    sPoor.textContent = fmt(poorMs);
+    sAlerts.textContent = alertCount;
+    sPct.textContent = pct !== null ? pct+'%' : '—';
+    sMin.className = 'stat-val '+(mn>THRESHOLD?'r':'g');
+    sMax.className = 'stat-val '+(mx>THRESHOLD?'r':'g');
+    sAvg.className = 'stat-val '+(avg>THRESHOLD?'r':avg>THRESHOLD*0.8?'y':'g');
+    if (pct!==null) sPct.className = 'stat-val '+(pct>=70?'g':pct>=40?'y':'r');
+  }
+
+  function update(raw) {
+    angle = raw; tick(); samples.push(raw);
+    angleVal.textContent = angle.toFixed(1);
+    barFill.style.width = (Math.min(90,Math.max(0,angle))/90*100)+'%';
+
+    const now = Date.now(), bad = angle > THRESHOLD;
+
+    if (bad) {
+      angleVal.style.color = 'var(--red)'; barFill.style.background = 'var(--red)';
+      postureVal.textContent = 'Poor'; postureVal.className = 'tile-val c-red';
+      if (lastState==='good') { log('Posture degraded','poor',angle); lastState='poor'; }
+      if (!badPostureStart) badPostureStart = now;
+      if (!motorOn && now-badPostureStart >= MOTOR_DELAY) {
+        motorOn=true; alertCount++;
+        hapticVal.textContent='On'; hapticVal.className='tile-val c-yellow';
+        hapticTile.classList.add('tile-alert');
+        log('Haptic alert fired','haptic',angle);
+      }
+    } else {
+      const col = angle>20 ? 'var(--yellow)' : 'var(--green)';
+      angleVal.style.color = col; barFill.style.background = col;
+      postureVal.textContent='Good'; postureVal.className='tile-val c-green';
+      if (lastState==='poor') { log('Posture corrected','good',angle); lastState='good'; }
+      badPostureStart=null;
+      if (motorOn) {
+        motorOn=false;
+        hapticVal.textContent='Off'; hapticVal.className='tile-val c-muted';
+        hapticTile.classList.remove('tile-alert');
+        log('Haptic cleared','info',angle);
+      }
+    }
+    stats();
+  }
+
+  function onData(e) {
+    buf += new TextDecoder().decode(e.target.value);
+    const lines = buf.split('\n'); buf = lines.pop();
+    for (const l of lines) {
+      const n = parseFloat(l.trim());
+      if (!isNaN(n) && Math.abs(n)<200) { if (!lastTick) lastTick=Date.now(); update(n); }
+    }
+  }
+
+  connectBtn.addEventListener('click', async () => {
+    try {
+      log('Scanning…','info');
+      const dev = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+      });
+      log('Connecting…','info');
+      const srv = await dev.gatt.connect();
+      const svc = await srv.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+      const chr = await svc.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+      await chr.startNotifications();
+      chr.addEventListener('characteristicvaluechanged', onData);
+      connDot.className='conn-dot live';
+      connText.textContent = dev.name || 'Connected';
+      connectBtn.disabled=true;
+      log('Connected — live data incoming','good');
+      timer = setInterval(()=>{tick();stats();},1000);
+      dev.addEventListener('gattserverdisconnected',()=>{
+        connDot.className='conn-dot'; connText.textContent='Disconnected';
+        connectBtn.disabled=false; log('Connection lost','poor');
+        if(timer){clearInterval(timer);timer=null;}
+      });
+    } catch(e) { log('Error: '+e.message,'poor'); }
+  });
+</script>
+<script>
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      window.location.href = 'index.html';
+    }
+  });
+</script>
+</body>
+</html>

@@ -726,5 +726,13 @@
     }
   });
 </script>
+<script>
+  document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      window.location.href = 'index2.html';
+    }
+  });
+</script>
 </body>
 </html>
